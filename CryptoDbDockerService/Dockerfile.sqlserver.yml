@@ -1,0 +1,14 @@
+FROM mcr.microsoft.com/mssql/server:2022-latest
+  
+  # Przełącz na użytkownika root, aby móc zainstalować pakiety
+USER root
+  
+  # Instalacja potrzebnych narzędzi (sqlcmd)
+RUN apt-get update && \
+ACCEPT_EULA=Y apt-get install -y mssql-tools unixodbc-dev && \
+ln -sfn /opt/mssql-tools/bin/* /usr/bin/ && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+  
+  # Wróć do użytkownika domyślnego SQL Server
+USER mssql

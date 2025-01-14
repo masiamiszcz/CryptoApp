@@ -1,0 +1,50 @@
+@model IEnumerable<WebAppi.Models.CryptoModel>
+
+@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link rel="stylesheet" href="~/css/DetailsCSS.css" />
+<div>
+    <a asp-action="Index" class="btn-outline-primary">Back to List</a>
+</div>
+<h1>
+    <img src="@Model.FirstOrDefault()?.CryptoNameNavigation?.Image" alt="@Model.FirstOrDefault()?.CryptoNameNavigation?.CryptoName image" class="crypto-details-img" />
+    @Model.FirstOrDefault()?.CryptoNameNavigation?.CryptoName
+    @Model.FirstOrDefault()?.CryptoNameNavigation?.Symbol.ToUpper()
+</h1>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Crypto Price</th>
+            <th>High24</th>
+            <th>Low24</th>
+            <th>Price Change</th>
+            <th>DateTime</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var record in Model)
+        {
+            <tr>
+                <td>@record.CryptoPrice $</td>
+                <td>@record.High24 $</td>
+                <td>@record.Low24 $</td>
+                <td>@record.PriceChange%</td>
+                <td>@record.DateTime</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No records found for this cryptocurrency.</p>
+}
+
+<div>
+    <a asp-action="Index" class="btn-outline-primary">Back to List</a>
+</div>

@@ -1,0 +1,48 @@
+@model WebAppi.Models.CryptoModel
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Edit</h1>
+
+<h4>CryptoModel</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="High24" class="control-label"></label>
+                <input asp-for="High24" class="form-control" />
+                <span asp-validation-for="High24" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Low24" class="control-label"></label>
+                <input asp-for="Low24" class="form-control" />
+                <span asp-validation-for="Low24" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                <label asp-for="CryptoPrice" class="control-label"></label>
+                <input asp-for="CryptoPrice" class="form-control" />
+                <span asp-validation-for="CryptoPrice" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PriceChange" class="control-label"></label>
+                <input asp-for="PriceChange" class="form-control" />
+                <span asp-validation-for="PriceChange" class="text-danger"></span>
+            </div>
+            <input type="hidden" asp-for="DateTime" />
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
