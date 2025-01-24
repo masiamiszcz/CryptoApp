@@ -1,0 +1,14 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "Reports": {
+    "Path": "Reports" 
+  },
+  "ConnectionStrings": {
+    "LogsDb": "Data Source=C:\\data\\logs.db"
+  }
+}
