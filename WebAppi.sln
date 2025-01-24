@@ -11,9 +11,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoDbDockerService", "Cr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoinGeckoDockerService", "CoinGeckoDockerService\CoinGeckoDockerService.csproj", "{4E161079-6378-4DEB-93C6-6415ADB32106}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaportGeneratorDockerService", "RaportGeneratorDockerService\RaportGeneratorDockerService.csproj", "{390E3BA2-D349-4A88-BF8B-09558A15F139}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CurrencyService", "CurrencyService\CurrencyService.csproj", "{2E6E5D09-C328-4E9B-B554-3AD95E47D56A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logger", "Logger\Logger.csproj", "{2673099C-39AF-4F5A-AEF2-EC8B3C87D712}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,14 +33,14 @@ Global
 		{4E161079-6378-4DEB-93C6-6415ADB32106}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E161079-6378-4DEB-93C6-6415ADB32106}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E161079-6378-4DEB-93C6-6415ADB32106}.Release|Any CPU.Build.0 = Release|Any CPU
-		{390E3BA2-D349-4A88-BF8B-09558A15F139}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{390E3BA2-D349-4A88-BF8B-09558A15F139}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{390E3BA2-D349-4A88-BF8B-09558A15F139}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{390E3BA2-D349-4A88-BF8B-09558A15F139}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2E6E5D09-C328-4E9B-B554-3AD95E47D56A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2E6E5D09-C328-4E9B-B554-3AD95E47D56A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E6E5D09-C328-4E9B-B554-3AD95E47D56A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E6E5D09-C328-4E9B-B554-3AD95E47D56A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2673099C-39AF-4F5A-AEF2-EC8B3C87D712}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2673099C-39AF-4F5A-AEF2-EC8B3C87D712}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2673099C-39AF-4F5A-AEF2-EC8B3C87D712}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2673099C-39AF-4F5A-AEF2-EC8B3C87D712}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection

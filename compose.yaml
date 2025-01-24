@@ -1,5 +1,4 @@
-﻿
-services:
+﻿services:
   # SQL Server (baza danych)
   sqlserver:
     build:
@@ -20,6 +19,19 @@ services:
       retries: 6
       start_period: 40s
 
+  # Logger (centralne logowanie)
+  logger:
+    build:
+      context: .
+      dockerfile: ./Logger/Dockerfile
+    container_name: logger-service
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+    ports:
+      - "8500:8500" # Port Loggera
+    networks:
+      - app-network
+
   # CoinGeckoDockerService (API)
   coingeckodockerservice:
     build:
@@ -29,12 +41,34 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy # Zależy od zdrowia SQL Server
+      logger:
+        condition: service_started # Zależy od Loggera
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
-      # Connection string przekazany jako zmienna środowiskowa
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CryptoDb;User=sa;Password=YourStrong@Password;TrustServerCertificate=True;"
+      LoggerUrl: "http://logger-service:8500" # Dodano URL do Loggera
     ports:
-      - "5000:5000" # Port API
+      - "5000:5000"
+    networks:
+      - app-network
+
+  # CurrencyService API
+  currencyservice:
+    build:
+      context: .
+      dockerfile: ./CurrencyService/Dockerfile
+    container_name: currency-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy # Zależy od zdrowia SQL Server
+      logger:
+        condition: service_started # Zależność od Loggera
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CryptoDb;User=sa;Password=YourStrong@Password;TrustServerCertificate=True;"
+      LoggerUrl: "http://logger-service:8500" # Dodano URL do Loggera
+    ports:
+      - "5010:5010"
     networks:
       - app-network
 
@@ -46,20 +80,22 @@ services:
     container_name: webappi
     depends_on:
       sqlserver:
-        condition: service_healthy # Uruchomi się dopiero po "zdrówku" SQL
+        condition: service_healthy # Uruchomi się po SQL Server
       coingeckodockerservice:
-        condition: service_started # WebAppi uruchomi się dopiero po starcie CoinGeckoDockerService
+        condition: service_started # Zależność od CoinGecko API
+      currencyservice:
+        condition: service_started # Zależność od Currency API
+      logger:
+        condition: service_started # Zależność od Loggera
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CryptoDb;User=sa;Password=YourStrong@Password;TrustServerCertificate=True;"
+      LoggerUrl: "http://logger-service:8500" # Dodano URL do Loggera
     ports:
-      - "8080:8080" # Mapowanie portu WebAppi
+      - "8080:8080"
     networks:
       - app-network
 
 networks:
   app-network:
     driver: bridge
-
-
-  

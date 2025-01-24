@@ -60,20 +60,19 @@ public class AppDbContext : DbContext
         // Konfiguracja dla tabeli ExchangeRates
         modelBuilder.Entity<ExchangeRates>(entity =>
         {
-            entity.HasKey(e => e.Id); // Klucz główny
+            entity.HasKey(e => e.DateTime); // Klucz główny
 
             entity.Property(e => e.ExchangeRate)
-                .IsRequired()
-                .HasMaxLength(20); // Maksymalna długość ciągu kursu wymiany
+                .IsRequired();
 
             // Relacja ExchangeRates.Id -> CurrencyNames.Id
-            entity.HasOne<CurrencyNames>()
+            entity.HasOne(e => e.CurrencyNameNavigation)
                 .WithMany()
                 .HasForeignKey(e => e.Id)
                 .HasConstraintName("FK_ExchangeRates_Id_CurrencyNames_Id");
 
             // Relacja ExchangeRates.Id2 -> CurrencyNames.Id
-            entity.HasOne<CurrencyNames>()
+            entity.HasOne(e => e.CurrencyNameNavigation2)
                 .WithMany()
                 .HasForeignKey(e => e.Id2)
                 .HasConstraintName("FK_ExchangeRates_Id2_CurrencyNames_Id2");

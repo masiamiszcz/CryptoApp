@@ -62,7 +62,7 @@ public class AppDbContext : DbContext
         // Konfiguracja dla tabeli ExchangeRates
         modelBuilder.Entity<ExchangeRates>(entity =>
         {
-            entity.HasKey(e => e.Id); // Klucz główny
+            entity.HasKey(e => e.DateTime); // Klucz główny
             
             entity.Property(e => e.ExchangeRate)
                 .IsRequired()
@@ -90,7 +90,6 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id); // Klucz główny
 
             entity.Property(e => e.CurrencyName)
-                .IsRequired()
                 .HasMaxLength(100);
 
             entity.Property(e => e.Symbol)

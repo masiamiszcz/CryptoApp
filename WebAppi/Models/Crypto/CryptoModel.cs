@@ -14,8 +14,8 @@ public class CryptoModel
     public DateTime DateTime { get; set; } // Klucz główny — czas rejestracji
 
     // Klucz obcy do tabeli CryptoNames
+    [ForeignKey("Crypto_Id")]
     public int Crypto_Id { get; set; }
 
-    [ForeignKey("Crypto_Id")]
     public CryptoNamesModel CryptoNameNavigation { get; set; } // Nawigacja do CryptoNames
 }

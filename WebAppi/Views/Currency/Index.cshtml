@@ -1,36 +1,103 @@
+@using Microsoft.AspNetCore.Mvc.TagHelpers
 @model IEnumerable<WebAppi.Models.ExchangeRates>
 
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Pobranie danych podzielonych na grupy z ViewData
+    var nbpRates = ViewData["NbpRates"] as List<WebAppi.Models.ExchangeRates>;
+    var ebcRates = ViewData["EbcRates"] as List<WebAppi.Models.ExchangeRates>;
+    var fixerRates = ViewData["FixerRates"] as List<WebAppi.Models.ExchangeRates>;
 }
 
-<h1>Index</h1>
+<h1>Kursy Walut</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
+<!-- Sekcja dla NBP -->
+<h2>Kursy Walut Narodowego Banku Polskiego</h2>
+@if (nbpRates != null && nbpRates.Any())
+{
+    <table class="table">
+        <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ExchangeRate)
-            </th>
+            <th>Currency Symbol/Currency Symbol</th>
+            <th>Exchange Rate</th>
+            <th>Currency Name/Currency Name</th>
+        </tr>
+        </thead>
+        <tbody>
+@foreach (var rate in nbpRates)
+{
+    <tr>
+        <td>@rate.CurrencyNameNavigation?.Symbol / @rate.CurrencyNameNavigation2?.Symbol</td>
+        <td>@rate.ExchangeRate</td>
+        <td>@rate.CurrencyNameNavigation?.CurrencyName / @rate.CurrencyNameNavigation2?.CurrencyName</td>
+    </tr>
+}
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No data available for NBP rates.</p>
+}
+
+<!-- Sekcja dla EBC -->
+<h2>Kursy Walut Europejskiego Banku Centralnego</h2>
+@if (ebcRates != null && ebcRates.Any())
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Currency Symbol/Currency Symbol</th>
+            <th>Exchange Rate</th>
+            <th>Currency Name/Currency Name</th>
             <th></th>
         </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ExchangeRate)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+        </thead>
+        <tbody>
+@foreach (var rate in ebcRates)
+{
+    <tr>
+        <td>@rate.CurrencyNameNavigation?.Symbol / @rate.CurrencyNameNavigation2?.Symbol</td>
+        <td>@rate.ExchangeRate</td>
+        <td>@rate.CurrencyNameNavigation?.CurrencyName / @rate.CurrencyNameNavigation2?.CurrencyName</td>
+    </tr>
 }
-    </tbody>
-</table>
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No data available for EBC rates.</p>
+}
+
+<!-- Sekcja dla Fixer -->
+<h2>Kursy Walut ze strony Fixer.io</h2>
+@if (fixerRates != null && fixerRates.Any())
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Currency Symbol/Currency Symbol</th>
+            <th>Exchange Rate</th>
+            <th>Currency Name/Currency Name</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+@foreach (var rate in fixerRates)
+{
+    <tr>
+        <td>@rate.CurrencyNameNavigation?.Symbol / @rate.CurrencyNameNavigation2?.Symbol</td>
+        <td>@rate.ExchangeRate</td>
+        <td>@rate.CurrencyNameNavigation?.CurrencyName / @rate.CurrencyNameNavigation2?.CurrencyName</td>
+    </tr>
+}
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No data available for Fixer rates.</p>
+}

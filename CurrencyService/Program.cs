@@ -8,8 +8,8 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = Host.CreateApplicationBuilder(args);
+        builder.Services.AddHttpClient<CentralizedLoggerClient>();
         builder.Services.AddHostedService<Worker>();
-        
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 

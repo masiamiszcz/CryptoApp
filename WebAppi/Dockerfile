@@ -15,7 +15,11 @@ RUN dotnet build "WebAppi.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "WebAppi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Diagnostyka katalogów
+RUN ls -la /src/WebAppi
+RUN ls -la /app/build
+# Wymuszona wartość BUILD_CONFIGURATION
+RUN dotnet publish "WebAppi.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:TreatWarningsAsErrors=false
 
 FROM base AS final
 WORKDIR /app

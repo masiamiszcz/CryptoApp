@@ -1,22 +1,28 @@
-﻿# Budowanie projektu
+﻿# Etap 1: budowanie aplikacji
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
 
-# Kopiowanie pliku `.csproj` — ścieżka względem kontekstu budowania
-COPY CoinGeckoDockerService/*.csproj ./CoinGeckoDockerService/
+# Ustawiamy katalog roboczy na główny katalog projektu
+WORKDIR /source
 
-# Przywrócenie zależności (restore)
-RUN dotnet restore ./CoinGeckoDockerService/CoinGeckoDockerService.csproj
+# Kopiowanie projektu Logger
+COPY Logger/ Logger/
 
-# Kopiowanie reszty plików projektu
-COPY CoinGeckoDockerService/ ./CoinGeckoDockerService/
+# Kopiowanie projektu CoinGeckoDockerService
+COPY CoinGeckoDockerService/ CoinGeckoDockerService/
+
+# Przywracanie zależności
+WORKDIR /source/CoinGeckoDockerService
+RUN dotnet restore
 
 # Budowanie projektu
-WORKDIR /app/CoinGeckoDockerService
-RUN dotnet publish -c Release -o /out
+RUN dotnet publish -c Release -o /output
 
-# Przygotowanie środowiska produkcyjnego
-FROM mcr.microsoft.com/dotnet/runtime:8.0 AS runtime
+# Etap 2: obraz runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+
+# Kopiowanie opublikowanego buildu z kroków budowy
 WORKDIR /app
-COPY --from=build /out .
+COPY --from=build /output .
+
+# Punkt wejścia aplikacji
 ENTRYPOINT ["dotnet", "CoinGeckoDockerService.dll"]

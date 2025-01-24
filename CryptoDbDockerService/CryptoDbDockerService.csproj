@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>dotnet-CryptoDbDockerService-698ebc7d-6e65-4061-8400-36b5724f3761</UserSecretsId>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <AppSettingsJson>CryptoDb.appsettings.json</AppSettingsJson>
     </PropertyGroup>
 
     <ItemGroup>
@@ -30,5 +31,9 @@
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Logger\Logger.csproj" />
     </ItemGroup>
 </Project>

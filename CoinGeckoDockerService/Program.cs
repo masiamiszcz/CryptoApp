@@ -7,11 +7,14 @@ namespace CoinGeckoDockerService
         public static void Main(string[] args)
         {
             var builder = Host.CreateApplicationBuilder(args);
+            builder.Configuration.AddJsonFile("CoinService.appsettings.json", optional: false, reloadOnChange: true);
 
-            // Wczytanie konfiguracji z appsettings.json
             var configuration = builder.Configuration;
 
-            // Rejestracja HttpClientFactory
+           
+            builder.Services.AddHttpClient<CentralizedLoggerClient>();
+
+            // Rejestracja klienta do CoinGecko API
             builder.Services.AddHttpClient("CoinGeckoClient", client =>
             {
                 client.BaseAddress = new Uri("https://api.coingecko.com/api/v3/");
@@ -32,8 +35,8 @@ namespace CoinGeckoDockerService
             Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
-                    // Wczytywanie ustawień aplikacji (jeśli potrzebujesz rozszerzenia)
-                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                    // Rozszerzenie konfiguracji (np. możliwość zmiany pliku JSON bez ponownej rekompilacji)
+                    config.AddJsonFile("CoinService.appsettings.json", optional: false, reloadOnChange: true);
                 })
                 .ConfigureServices((hostContext, services) =>
                 {

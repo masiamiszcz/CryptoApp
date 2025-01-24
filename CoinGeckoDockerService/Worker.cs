@@ -17,27 +17,43 @@ namespace CoinGeckoDockerService
         private readonly ILogger<Worker> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _serviceProvider;
+        private readonly CentralizedLoggerClient _centralizedLogger;
 
-        public Worker(ILogger<Worker> logger, IHttpClientFactory httpClientFactory, IServiceProvider serviceProvider)
+        public Worker(
+            ILogger<Worker> logger,
+            IHttpClientFactory httpClientFactory,
+            IServiceProvider serviceProvider,
+            CentralizedLoggerClient centralizedLogger)
         {
             _logger = logger;
             _httpClientFactory = httpClientFactory;
             _serviceProvider = serviceProvider;
+            _centralizedLogger = centralizedLogger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-
-                using (var scope = _serviceProvider.CreateScope())
+                try
                 {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                    await GetDataFromApiAndSaveToDb(dbContext);
-                }
+                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                    await _centralizedLogger.SendLog(LogLevel.Information, $"Worker running at: {DateTimeOffset.Now}");
 
-                await Task.Delay(60000, stoppingToken);
+                    using (var scope = _serviceProvider.CreateScope())
+                    {
+                        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                        await GetDataFromApiAndSaveToDb(dbContext);
+                    }
+
+                    await Task.Delay(60000, stoppingToken);
+                }
+                catch (Exception ex)
+                {
+                    var errorMessage = $"Unhandled error during CoinGeckoWorker execution: {ex.Message}";
+                    _logger.LogError(errorMessage);
+                    await _centralizedLogger.SendLog(LogLevel.Error, errorMessage);
+                }
             }
         }
 
@@ -53,14 +69,11 @@ namespace CoinGeckoDockerService
                 
                 foreach (var crypto in cryptoList)
                 {
-
-                    
                     var cryptoId = dbContext.CryptoNames
                         .AsNoTracking()
                         .Where(cn => cn.Symbol == crypto.Symbol && cn.CryptoName == crypto.CryptoName)
                         .Select(cn => cn.Id)
                         .FirstOrDefault();
-                    
                     
                     if (cryptoId == 0)
                     {
@@ -74,6 +87,7 @@ namespace CoinGeckoDockerService
                         await dbContext.SaveChangesAsync(); // Wymusza wygenerowanie Id 
                         cryptoId = newCryptoName.Id;    
                     }
+                    
                     var cryptoEntity = new Crypto
                     {
                         High24 = crypto.High24,
@@ -88,9 +102,17 @@ namespace CoinGeckoDockerService
                     await dbContext.SaveChangesAsync();
                 }
             }
+            catch (HttpRequestException httpEx)
+            {
+                var warningMessage = $"Network issue while calling API: {httpEx.Message}";
+                _logger.LogWarning(warningMessage);
+                await _centralizedLogger.SendLog(LogLevel.Warning, warningMessage);
+            }
             catch (Exception ex)
             {
-                _logger.LogError($"Error occurred while fetching or saving data: {ex.Message}");
+                var errorMessage = $"Critical error occurred while fetching or saving data: {ex.Message}";
+                _logger.LogError(errorMessage);
+                await _centralizedLogger.SendLog(LogLevel.Error, errorMessage);
             }
         }
     }

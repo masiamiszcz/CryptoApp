@@ -12,10 +12,14 @@ namespace WebAppi.Controllers
     public class CryptoController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<CryptoController> _logger;
+        private readonly CentralizedLoggerClient _centralizedLogger;
 
-        public CryptoController(AppDbContext context)
+        public CryptoController(AppDbContext context, ILogger<CryptoController> logger, CentralizedLoggerClient centralizedLogger)
         {
             _context = context;
+            _logger = logger;
+            _centralizedLogger = centralizedLogger;
         }
 
         // GET: Crypto
@@ -31,27 +35,35 @@ namespace WebAppi.Controllers
             return View(latestCryptos);
         }
 
-        // GET: Crypto/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
+                if (id == null)
+                {
+                    return NotFound();
+                }
+
+                var cryptoRecords = await _context.Cryptos
+                    .Include(c => c.CryptoNameNavigation)
+                    .Where(c => c.Crypto_Id == id)
+                    .OrderByDescending(c => c.DateTime)
+                    .ToListAsync();
+
+                if (!cryptoRecords.Any())
+                {
+                    return NotFound();
+                }
+
+                return View(cryptoRecords);
             }
-
-            // Pobieramy wszystkie rekordy z tabeli Cryptos powiązane z Crypto_Id
-            var cryptoRecords = await _context.Cryptos
-                .Include(c => c.CryptoNameNavigation) // Dołącz dane z CryptoNames
-                .Where(c => c.Crypto_Id == id) // Filtruj po kluczu obcym
-                .OrderByDescending(c => c.DateTime) // Sortuj malejąco po DateTime
-                .ToListAsync();
-
-            if (!cryptoRecords.Any())
+            catch (Exception ex)
             {
-                return NotFound();
+                var message = $"Error fetching crypto details for ID {id}: {ex.Message}";
+                _logger.LogError(message);
+                await _centralizedLogger.SendLog(LogLevel.Error, message);
+                return StatusCode(500);
             }
-
-            return View(cryptoRecords);
         }
 
         // GET: Crypto/Create

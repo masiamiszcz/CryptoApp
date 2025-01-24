@@ -12,33 +12,94 @@ namespace WebAppi.Controllers
     public class CurrencyController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<CurrencyController> _logger;
+        private readonly CentralizedLoggerClient _centralizedLogger;
 
-        public CurrencyController(AppDbContext context)
+        public CurrencyController(AppDbContext context, ILogger<CurrencyController> logger, CentralizedLoggerClient centralizedLogger)
         {
             _context = context;
+            _logger = logger;
+            _centralizedLogger = centralizedLogger;
         }
-        // GET: Currency
         public async Task<IActionResult> Index()
         {
-            return View(await _context.ExchangeRates.ToListAsync());
+            try
+            {
+            // Grupowanie i wybieranie najnowszych rekordów dla NBP Rates (API 1 i 2)
+            var nbpRates = await _context.ExchangeRates
+                .Include(e => e.CurrencyNameNavigation)
+                .Include(e => e.CurrencyNameNavigation2)
+                .Where(e => e.ApiId == 1 || e.ApiId == 2) // Dane dla NBP
+                .GroupBy(e => e.Id) // Grupowanie po Id2
+                .Select(g => g.OrderByDescending(e => e.DateTime).FirstOrDefault()) // Najnowszy rekord w każdej grupie
+                .ToListAsync();
+
+            // Grupowanie i wybieranie najnowszych rekordów dla EBC Rates (API 3)
+            var ebcRates = await _context.ExchangeRates
+                .Include(e => e.CurrencyNameNavigation)
+                .Include(e => e.CurrencyNameNavigation2)
+                .Where(e => e.ApiId == 3) // Dane dla EBC
+                .GroupBy(e => e.Id2) // Grupowanie po Id2
+                .Select(g => g.OrderByDescending(e => e.DateTime).FirstOrDefault()) // Najnowszy rekord w każdej grupie
+                .ToListAsync();
+
+            // Grupowanie i wybieranie najnowszych rekordów dla Fixer Rates (API 4)
+            var fixerRates = await _context.ExchangeRates
+                .Include(e => e.CurrencyNameNavigation)
+                .Include(e => e.CurrencyNameNavigation2)
+                .Where(e => e.ApiId == 4) // Dane dla Fixer
+                .GroupBy(e => e.Id2) // Grupowanie po Id2
+                .Select(g => g.OrderByDescending(e => e.DateTime).FirstOrDefault()) // Najnowszy rekord w każdej grupie
+                .ToListAsync();
+            
+            if (!nbpRates.Any() || !ebcRates.Any() || !fixerRates.Any())
+            {
+                // Wypisz błąd lub sprawdź dane w tabelach
+            }
+
+            // Przekazanie wszystkich danych do widoku poprzez ViewData
+            ViewData["NbpRates"] = nbpRates;
+            ViewData["EbcRates"] = ebcRates;
+            ViewData["FixerRates"] = fixerRates;
+
+            // Widok nie potrzebuje jednej listy, ale można zwrócić wszystkie if needed
+            return View();
+            }
+            catch (Exception ex)
+            {
+                var message = $"Error occurred while fetching Currency data for Index: {ex.Message}";
+                _logger.LogError(message);
+                await _centralizedLogger.SendLog(LogLevel.Error, message);
+                return StatusCode(500);
+            }
         }
 
         // GET: Currency/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
-            }
+                if (id == null)
+                {
+                    return NotFound();
+                }
 
-            var exchangeRates = await _context.ExchangeRates
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (exchangeRates == null)
+                var exchangeRates = await _context.ExchangeRates
+                    .FirstOrDefaultAsync(m => m.Id == id);
+                if (exchangeRates == null)
+                {
+                    return NotFound();
+                }
+
+                return View(exchangeRates);
+            }
+            catch (Exception ex)
             {
-                return NotFound();
+                var message = $"Error occurred while fetching details for Currency ID {id}: {ex.Message}";
+                _logger.LogError(message);
+                await _centralizedLogger.SendLog(LogLevel.Error, message);
+                return StatusCode(500);
             }
-
-            return View(exchangeRates);
         }
 
         // GET: Currency/Create
