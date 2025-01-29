@@ -22,7 +22,6 @@
       </PackageReference>
       <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
       <PackageReference Include="NuGet.Common" Version="6.11.0" />
-      <PackageReference Include="QuestPDF" Version="2024.12.2" />
       <PackageReference Include="Serilog" Version="4.2.0" />
       <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
       <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />

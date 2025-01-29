@@ -5,6 +5,9 @@
       context: .
       dockerfile: C:\Users\Hacce\RiderProjects\WebAppi\CryptoDbDockerService\Dockerfile.sqlserver.yml
     container_name: sqlserver
+    depends_on:
+      logger:
+        condition: service_started
     environment:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: "YourStrong@Password"
@@ -18,12 +21,16 @@
       timeout: 2s
       retries: 6
       start_period: 40s
+    volumes:
+      - C:\data\backups:/data
 
   # Logger (centralne logowanie)
   logger:
     build:
       context: .
       dockerfile: ./Logger/Dockerfile
+    volumes:
+      - C:\data\logs:/data/logs
     container_name: logger-service
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
@@ -31,6 +38,29 @@
       - "8500:8500" # Port Loggera
     networks:
       - app-network
+  
+  cryptodbdockerservice:
+    build:
+      context: .
+      dockerfile: ./CryptoDbDockerService/Dockerfile
+    volumes:
+      - C:\data\backups:/data
+    container_name: cryptodbservice
+    depends_on:
+      sqlserver:
+        condition: service_healthy # Aplikacja czeka na gotowość SQL Server.
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CryptoDb;User=sa;Password=YourStrong@Password;TrustServerCertificate=True;"
+    networks:
+      - app-network
+    restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "sqlcmd -S sqlserver -U sa -P YourStrong@Password -d CryptoDb -Q \"SELECT 1 FROM cryptos;\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
 
   # CoinGeckoDockerService (API)
   coingeckodockerservice:
@@ -43,6 +73,8 @@
         condition: service_healthy # Zależy od zdrowia SQL Server
       logger:
         condition: service_started # Zależy od Loggera
+      cryptodbdockerservice:
+        condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CryptoDb;User=sa;Password=YourStrong@Password;TrustServerCertificate=True;"
@@ -63,6 +95,8 @@
         condition: service_healthy # Zależy od zdrowia SQL Server
       logger:
         condition: service_started # Zależność od Loggera
+      cryptodbdockerservice:
+        condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CryptoDb;User=sa;Password=YourStrong@Password;TrustServerCertificate=True;"
@@ -96,6 +130,33 @@
     networks:
       - app-network
 
+  pdfservice:
+    build:
+      context: .
+      dockerfile: PDFService/Dockerfile
+    volumes:
+      - C:\data\pdfs:/data/pdfs
+    depends_on:
+      sqlserver:
+        condition: service_healthy # Zależy od zdrowia SQL Server
+      logger:
+        condition: service_started # Zależy od Loggera
+      cryptodbdockerservice:
+        condition: service_healthy # Zależy od CryptoDbService
+      coingeckodockerservice:
+        condition: service_started # Zależy od CoinGecko API
+      currencyservice:
+        condition: service_started # Zależy od Currency API
+      webappi:
+        condition: service_started # Zależy od WebAppi
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      LoggerUrl: "http://logger-service:8500" # URL do Loggera
+    networks:
+      - app-network
+      
 networks:
   app-network:
     driver: bridge
+    
+    

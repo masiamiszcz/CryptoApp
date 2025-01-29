@@ -26,13 +26,13 @@ public class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var message = $"Currency Worker running at: {DateTimeOffset.Now}";
+        _logger.LogInformation(message);
+        await _centralizedLogger.SendLog(LogLevel.Information, message);
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                var message = $"Currency Worker running at: {DateTimeOffset.Now}";
-                _logger.LogInformation(message);
-                await _centralizedLogger.SendLog(LogLevel.Information, message);
 
                 using (var scope = _serviceProvider.CreateScope())
                 {
@@ -139,21 +139,30 @@ public class Worker : BackgroundService
         {
             return true;
         }
-
+        var eightHoursAgo = now.AddHours(-8);
+        var today1230 = now.Date.AddHours(12).AddMinutes(30);
         // Logika warunków dla poszczególnych API
         switch (apiId)
         {
             case 1: // API NBP
-                // Jeśli dzisiaj po 12:30 nie było pobrania, należy pobrać dane
-                var today1230 = now.Date.AddHours(12).AddMinutes(30);
-                if (lastFetchTime < today1230)
+                if (now < today1230) // Przypadek godzin przed 12:30
                 {
-                    return true;
+                    // Sprawdź, czy od ostatniego pobrania minęło więcej niż 8 godzin
+                    if (lastFetchTime < eightHoursAgo)
+                    {
+                        return true;
+                    }
+                }
+                else // Przypadek godzin po 12:30
+                {
+                    // Sprawdź, czy od ostatniego pobrania po godzinie 16:15 (dzisiaj) wciąż nie było pobrania
+                    if (lastFetchTime < today1230)
+                    {
+                        return true;
+                    }
                 }
                 break;
             case 2: // API NBP
-                // Jeśli dzisiaj po 12:30 nie było pobrania, należy pobrać dane
-                    today1230 = now.Date.AddHours(12).AddMinutes(30);
                 if (lastFetchTime < today1230)
                 {
                     return true;
@@ -161,17 +170,29 @@ public class Worker : BackgroundService
                 break;
 
             case 3: // API EBC
-                // Jeśli dzisiaj po 16:15 nie było pobrania, należy pobrać dane
+                // Określenie godziny 16:15 dla bieżącego dnia
                 var today1615 = now.Date.AddHours(16).AddMinutes(15);
-                if (lastFetchTime < today1615)
+    
+                if (now < today1615) // Przypadek godzin przed 16:15
                 {
-                    return true;
+                    // Sprawdź, czy od ostatniego pobrania minęło więcej niż 8 godzin
+                    if (lastFetchTime < eightHoursAgo)
+                    {
+                        return true;
+                    }
+                }
+                else // Przypadek godzin po 16:15
+                {
+                    // Sprawdź, czy od ostatniego pobrania po godzinie 16:15 (dzisiaj) wciąż nie było pobrania
+                    if (lastFetchTime < today1615)
+                    {
+                        return true;
+                    }
                 }
                 break;
 
             case 4: // API Fixer.io
                 // Jeśli od ostatniego pobrania minęło więcej niż 8 godzin, należy pobrać dane
-                var eightHoursAgo = now.AddHours(-8);
                 if (lastFetchTime < eightHoursAgo)
                 {
                     return true;

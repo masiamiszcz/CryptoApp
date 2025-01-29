@@ -33,12 +33,12 @@ namespace CoinGeckoDockerService
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+            await _centralizedLogger.SendLog(LogLevel.Information, $"Worker running at: {DateTimeOffset.Now}");
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                    await _centralizedLogger.SendLog(LogLevel.Information, $"Worker running at: {DateTimeOffset.Now}");
 
                     using (var scope = _serviceProvider.CreateScope())
                     {
@@ -46,7 +46,7 @@ namespace CoinGeckoDockerService
                         await GetDataFromApiAndSaveToDb(dbContext);
                     }
 
-                    await Task.Delay(60000, stoppingToken);
+                    await Task.Delay(180000, stoppingToken);
                 }
                 catch (Exception ex)
                 {

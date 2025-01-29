@@ -13,6 +13,11 @@ namespace CryptoDbDockerService
         {
             var builder = Host.CreateApplicationBuilder(args);
             builder.Configuration.AddJsonFile("CryptoDb.appsettings.json", optional: false, reloadOnChange: true);
+            var path = "C:\\data\\backups";
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
             builder.Services.AddHttpClient<CentralizedLoggerClient>();
             builder.Services.AddHostedService<Worker>();
             builder.Services.AddDbContext<AppDbContext>(options =>

@@ -9,6 +9,6 @@
     "Path": "Reports" 
   },
   "ConnectionStrings": {
-    "LogsDb": "Data Source=C:\\data\\logs.db"
+    "LogsDb": "Data Source=/data/logs/logs.db"
   }
 }
