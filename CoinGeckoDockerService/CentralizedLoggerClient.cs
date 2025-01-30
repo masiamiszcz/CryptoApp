@@ -8,14 +8,14 @@ public class CentralizedLoggerClient
 {
     private readonly HttpClient _client;
     private readonly ILogger<CentralizedLoggerClient> _localLogger;
-    private readonly string _loggerUrl = "http://logger-service:8500"; // Logger URL na stałe w kodzie
+    private readonly string _loggerUrl = "http://logger-service:8500"; 
 
     public CentralizedLoggerClient(HttpClient client, ILogger<CentralizedLoggerClient> localLogger)
     {
         _client = client;
         _localLogger = localLogger;
 
-        // Ustawienie BaseAddress na sztywny adres URL
+
         _client.BaseAddress = new Uri(_loggerUrl);
     }
 

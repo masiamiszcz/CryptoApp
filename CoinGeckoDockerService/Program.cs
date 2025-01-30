@@ -14,17 +14,15 @@ namespace CoinGeckoDockerService
            
             builder.Services.AddHttpClient<CentralizedLoggerClient>();
 
-            // Rejestracja klienta do CoinGecko API
             builder.Services.AddHttpClient("CoinGeckoClient", client =>
             {
                 client.BaseAddress = new Uri("https://api.coingecko.com/api/v3/");
             });
 
-            // Rejestracja DbContext z użyciem connection string z appsettings.json
+
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-
-            // Rejestracja Worker Service
+            
             builder.Services.AddHostedService<Worker>();
 
             var host = builder.Build();

@@ -50,14 +50,11 @@ public class Program
 
         builder.Services.AddDbContext<LogsDbContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("LogsDb")));
-
-        // Dodanie kontrolerów MVC
         builder.Services.AddControllers();
-        //builder.Services.AddHostedService<PdfWorker>();
 
         var app = builder.Build();
 
-        // Pobranie instancji ILogger
+
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
         using (var scope = app.Services.CreateScope())

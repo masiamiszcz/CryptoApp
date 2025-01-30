@@ -84,7 +84,7 @@ namespace PDFService
                     }
                 }
         
-                // Usuwanie najstarszych plików, jeśli liczba plików przekracza limit 50
+                // Usuwanie najstarszych plików, jeśli liczba plików przekracza  50
                 while (pdfFiles.Count >= 50)
                 {
                     var oldestFile = pdfFiles.Last(); // Najstarszy plik
@@ -94,10 +94,9 @@ namespace PDFService
                 }
         
                 // Generowanie unikalnej nazwy pliku PDF
-                var pdfFileName = $"Raport_{DateTime.Now:yyyyMMdd_HHmmss}.pdf"; // Unikalna nazwa z timestampem
+                var pdfFileName = $"Raport_{DateTime.Now:yyyyMMdd_HHmmss}.pdf"; 
                 var pdfFilePath = Path.Combine(PdfFolder, pdfFileName);
-        
-                // Tworzenie nowego PDF
+
                 await CreatePdf(pdfFilePath);
         
                 var successMessage = $"Plik PDF został wygenerowany w lokalizacji: {pdfFilePath}";
@@ -116,7 +115,7 @@ namespace PDFService
         {
             try
             {
-                // Pobranie logów i podsumowania z Logger API
+                // Pobranie logów z Logger API
                 _logger.LogInformation("Pobieranie danych z Logger API...");
 
                 // Pobranie logów z ostatnich 8 godzin
@@ -127,7 +126,6 @@ namespace PDFService
                 var filteredLogs = recentLogs?.Where(log => log.Level == 3 || log.Level == 4).ToList();
                 _logger.LogInformation($"Po filtrowaniu pozostało {filteredLogs?.Count} logów (Warning/Error).");
 
-                // Pobranie podsumowania
                 var summaryResponse = await _httpClient.GetAsync("http://logger-service:8500/api/logs/summary");
                 summaryResponse.EnsureSuccessStatusCode();
                 var summaryJson = await summaryResponse.Content.ReadAsStringAsync();
