@@ -53,7 +53,7 @@ namespace CoinGeckoDockerService
 
                 entity.Property(e => e.Symbol)
                     .IsRequired()
-                    .HasMaxLength(10);
+                    .HasMaxLength(15);
                 entity.Property(e => e.Image)
                     .IsRequired();
             });

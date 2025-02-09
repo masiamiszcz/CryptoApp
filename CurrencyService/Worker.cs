@@ -46,7 +46,7 @@ public class Worker : BackgroundService
                 }
 
                 // Co 5 min sprawdzamy, czy należy wykonać kolejne pobranie
-                await Task.Delay(300000, stoppingToken);
+                await Task.Delay(TimeSpan.FromMinutes(15), stoppingToken);
             }
             catch (Exception e)
             {

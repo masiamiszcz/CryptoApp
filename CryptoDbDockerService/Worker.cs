@@ -70,7 +70,7 @@ namespace CryptoDbDockerService
                     _logger.LogInformation("No backup files found. Skipping restore. Applying migraion ...");
                     await ApplyMigrationsAsync();
                     return;
-                }
+                } 
 
                 _logger.LogInformation("Restoring database from: {fileName}", backupFile);
 

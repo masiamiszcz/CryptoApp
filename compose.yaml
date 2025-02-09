@@ -1,16 +1,9 @@
-﻿# uruchomienie:
-# musisz mieć zainstalowany dockerdesktop
-# w terminalu wpisz:
-# docker-compose up --build
-# reszta sama się wydarzy 
-# report co 8 godzin, po 5 min od uruchomienia
-# 
-services:
+﻿services:
 
   sqlserver:
     build:
       context: .
-      dockerfile: C:\Users\Hacce\RiderProjects\WebAppi\CryptoDbDockerService\Dockerfile.sqlserver.yml
+      dockerfile: ./Dockerfile.sqlserver.yml
     container_name: sqlserver
     depends_on:
       logger:
@@ -30,6 +23,7 @@ services:
       start_period: 40s
     volumes:
       - C:\data\backups:/data
+    restart: unless-stopped
 
   logger:
     build:
@@ -44,6 +38,7 @@ services:
       - "8500:8500" 
     networks:
       - app-network
+    restart: on-failure
   
   cryptodbdockerservice:
     build:
@@ -51,7 +46,7 @@ services:
       dockerfile: ./CryptoDbDockerService/Dockerfile
     volumes:
       - C:\data\backups:/data
-    container_name: cryptodbservice
+    container_name: cryptodbservices
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -60,7 +55,7 @@ services:
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CryptoDb;User=sa;Password=YourStrong@Password;TrustServerCertificate=True;"
     networks:
       - app-network
-    restart: "no"
+    restart: 'no'
     healthcheck:
       test: ["CMD-SHELL", "sqlcmd -S sqlserver -U sa -P YourStrong@Password -d CryptoDb -Q \"SELECT 1 FROM cryptos;\" || exit 1"]
       interval: 10s
@@ -88,6 +83,7 @@ services:
       - "5000:5000"
     networks:
       - app-network
+    restart: on-failure
 
   currencyservice:
     build:
@@ -109,6 +105,7 @@ services:
       - "5010:5010"
     networks:
       - app-network
+    restart: on-failure
 
   webappi:
     build:
@@ -132,6 +129,7 @@ services:
       - "8080:8080"
     networks:
       - app-network
+    restart: always
 
   pdfservice:
     build:
@@ -157,6 +155,7 @@ services:
       LoggerUrl: "http://logger-service:8500" 
     networks:
       - app-network
+    restart: on-failure
       
 networks:
   app-network:

@@ -15,20 +15,20 @@ namespace CoinGeckoDockerService
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IServiceProvider _serviceProvider;
         private readonly CentralizedLoggerClient _centralizedLogger;
+        private readonly HttpClient _httpclient;
 
         public Worker(
             ILogger<Worker> logger,
-            IHttpClientFactory httpClientFactory,
             IServiceProvider serviceProvider,
-            CentralizedLoggerClient centralizedLogger)
+            CentralizedLoggerClient centralizedLogger,
+            HttpClient httpClient)
         {
             _logger = logger;
-            _httpClientFactory = httpClientFactory;
             _serviceProvider = serviceProvider;
             _centralizedLogger = centralizedLogger;
+            _httpclient = httpClient;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -46,7 +46,7 @@ namespace CoinGeckoDockerService
                         await GetDataFromApiAndSaveToDb(dbContext);
                     }
 
-                    await Task.Delay(180000, stoppingToken);
+                    await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
                 }
                 catch (Exception ex)
                 {
@@ -57,13 +57,12 @@ namespace CoinGeckoDockerService
             }
         }
 
-        private async Task GetDataFromApiAndSaveToDb(AppDbContext dbContext)
+        public async Task GetDataFromApiAndSaveToDb(AppDbContext dbContext)
         {
             try
             {
-                var httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.Add("User-Agent", "Kryptowaluty/1.0.0");
-                var response = await httpClient.GetAsync("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd");
+                _httpclient.DefaultRequestHeaders.Add("User-Agent", "Kryptowaluty/1.0.0");
+                var response = await _httpclient.GetAsync("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd");
                 var responseContent = await response.Content.ReadAsStringAsync();
                 var cryptoList = JsonSerializer.Deserialize<List<Crypto>>(responseContent);
                 
