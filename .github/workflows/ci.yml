@@ -1,0 +1,27 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repozytorium
+        uses: actions/checkout@v3
+
+      - name: Budowanie aplikacji za pomocą Docker Compose
+        run: |
+          docker compose up --build 
+
+      # Opcjonalnie: Uruchomienie testów – upewnij się, że kontenery są gotowe
+      # - name: Uruchomienie testów wewnątrz kontenera
+      #   run: docker compose exec <nazwa-serwisu> <komenda-testowa>
+      #   # np. docker compose exec app npm test
+
+      - name: Zatrzymanie i usunięcie kontenerów
+        run: docker compose down
