@@ -51,6 +51,18 @@ public class Program
         builder.Services.AddDbContext<LogsDbContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("LogsDb")));
         builder.Services.AddControllers();
+        
+        //Swagger
+        builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "Logger",
+                    Version = "v1",
+                    Description = "Logger Documents"
+                });
+            }
+            );
 
         var app = builder.Build();
 
@@ -77,6 +89,13 @@ public class Program
             }
         }
         app.UseHttpsRedirection();
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "Logger API V1");
+            c.RoutePrefix = string.Empty; 
+        });
+
         app.UseAuthorization();
         app.MapControllers();
 
