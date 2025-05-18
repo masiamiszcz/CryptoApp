@@ -1,3 +1,4 @@
+// Worker.cs
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -8,7 +9,6 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace CoinGeckoDockerService
 {
@@ -39,13 +39,11 @@ namespace CoinGeckoDockerService
             {
                 try
                 {
-
                     using (var scope = _serviceProvider.CreateScope())
                     {
                         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                         await GetDataFromApiAndSaveToDb(dbContext);
                     }
-
                     await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
                 }
                 catch (Exception ex)
@@ -83,7 +81,7 @@ namespace CoinGeckoDockerService
                             Image = crypto.Image
                         };
                         dbContext.CryptoNames.Add(newCryptoName);
-                        await dbContext.SaveChangesAsync(); // Wymusza wygenerowanie Id 
+                        await dbContext.SaveChangesAsync(); // Wygeneruj Id 
                         cryptoId = newCryptoName.Id;    
                     }
                     

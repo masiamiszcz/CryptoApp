@@ -44,6 +44,8 @@
     build:
       context: .
       dockerfile: ./CryptoDbDockerService/Dockerfile
+    ports:
+      - "5020:5020"
     volumes:
       - C:\data\backups:/data
     container_name: cryptodbservices
@@ -126,7 +128,7 @@
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CryptoDb;User=sa;Password=YourStrong@Password;TrustServerCertificate=True;"
       LoggerUrl: "http://logger-service:8500" 
     ports:
-      - "8080:8080"
+      - "8050:8050"
     networks:
       - app-network
     restart: always
@@ -137,6 +139,8 @@
       dockerfile: PDFService/Dockerfile
     volumes:
       - C:\data\pdfs:/data/pdfs
+    ports:
+      - "5030:5030"
     depends_on:
       sqlserver:
         condition: service_healthy 
@@ -156,7 +160,25 @@
     networks:
       - app-network
     restart: on-failure
-      
+    
+  swagger-ui:
+    build:
+      context: ./SwaggerUI
+      dockerfile: Dockerfile
+    container_name: swagger-ui
+    depends_on:
+      - coingeckodockerservice
+      - currencyservice
+      - cryptodbdockerservice
+      - pdfservice
+      - webappi
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    restart: unless-stopped
+  
+
 networks:
   app-network:
     driver: bridge

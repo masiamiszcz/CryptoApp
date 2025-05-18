@@ -1,54 +1,99 @@
+using System;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
+using CoinGeckoDockerService;
+using Microsoft.AspNetCore.Hosting;
 
-namespace CoinGeckoDockerService
+var builder = WebApplication.CreateBuilder(args);
+
+// 1) Konfiguracja pliku ustawień
+builder.Configuration.AddJsonFile("CoinService.appsettings.json", optional: false, reloadOnChange: true);
+
+// 2) Rejestracja HttpClient, DbContext i Worker
+builder.Services.AddHttpClient<CentralizedLoggerClient>();
+builder.Services.AddHttpClient("CoinGeckoClient", client =>
 {
-    public class Program
+    client.BaseAddress = new Uri("https://api.coingecko.com/api/v3/");
+});
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddHostedService<Worker>();
+
+// 3) Dodajemy kontrolery (potrzebne, by Swagger zobaczył minimalne API)
+builder.Services.AddControllers();
+
+// 4) CORS dla Swagger UI
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SwaggerUI", policy =>
+        policy.WithOrigins("http://localhost:8080")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+    );
+});
+
+// 5) Swagger: dokumentacja API
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
     {
-        public static void Main(string[] args)
-        {
-            var builder = Host.CreateApplicationBuilder(args);
-            builder.Configuration.AddJsonFile("CoinService.appsettings.json", optional: false, reloadOnChange: true);
+        Title = "CoinGecko Docker Service API",
+        Version = "v1",
+        Description = "Pobiera i zapisuje dane z CoinGecko"
+    });
+});
 
-            var configuration = builder.Configuration;
+// 6) Nasłuchuj na wszystkich interfejsach:5000
+builder.WebHost.UseUrls("http://0.0.0.0:5000");
 
-           
-            builder.Services.AddHttpClient<CentralizedLoggerClient>();
+var app = builder.Build();
 
-            builder.Services.AddHttpClient("CoinGeckoClient", client =>
-            {
-                client.BaseAddress = new Uri("https://api.coingecko.com/api/v3/");
-            });
+// 7) Middleware
+app.UseRouting();
 
+// 8) Enable CORS BEFORE Swagger middleware
+app.UseCors("SwaggerUI");
 
-            builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-            
-            builder.Services.AddHostedService<Worker>();
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CoinGecko v1");
+    c.RoutePrefix = "swagger";
+});
 
-            var host = builder.Build();
-            host.Run();
-        }
+// 9) Mapowanie endpointów
+app.MapControllers();
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((hostingContext, config) =>
-                {
-                    // Rozszerzenie konfiguracji (np. możliwość zmiany pliku JSON bez ponownej rekompilacji)
-                    config.AddJsonFile("CoinService.appsettings.json", optional: false, reloadOnChange: true);
-                })
-                .ConfigureServices((hostContext, services) =>
-                {
-                    var configuration = hostContext.Configuration;
+//  ➤ Minimalne API: pobranie top 100 coinów
+app.MapGet("/api/coins/top100", async (IHttpClientFactory httpFactory) =>
+{
+    var client = httpFactory.CreateClient("CoinGeckoClient");
+    var resp = await client.GetAsync("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd");
+    resp.EnsureSuccessStatusCode();
+    var json = await resp.Content.ReadAsStringAsync();
+    return Results.Content(json, "application/json");
+})
+.WithName("GetTop100Coins")
+.WithTags("CoinGecko");
 
-                    // Rejestracja HttpClientFactory
-                    services.AddHttpClient();
+//  ➤ Minimalne API: wysyłka testowego loga
+app.MapPost("/api/logs/test", async (CentralizedLoggerClient logger) =>
+{
+    await logger.SendLog(LogLevel.Information, "Testowy log via API");
+    return Results.Ok(new { status = "sent" });
+})
+.WithName("SendTestLog")
+.WithTags("Logs");
 
-                    // Rejestracja AppDbContext (baza danych)
-                    services.AddDbContext<AppDbContext>(options =>
-                        options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+// 10) Health i przekierowanie
+app.MapGet("/", () => Results.Redirect("/swagger"));
+app.MapGet("/health", () => Results.Ok("Healthy"));
 
-                    // Rejestracja Worker Service
-                    services.AddHostedService<Worker>();
-                });
-    }
-}
+// 11) Start
+app.Run();

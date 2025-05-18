@@ -79,14 +79,12 @@ namespace CryptoDbDockerService
                     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                     var connectionString = dbContext.Database.GetConnectionString();
 
-                    // Tworzymy nowe połączenie, zamiast zmieniać istniejące
                     using (var connection = new Microsoft.Data.SqlClient.SqlConnection(
                                connectionString.Replace($"Database={dbContext.Database.GetDbConnection().Database};", "Database=master;")))
                     {
                         await connection.OpenAsync();
                         using (var command = connection.CreateCommand())
                         {
-                            // Przywrócenie bazy danych
                             command.CommandText = $@"
                 RESTORE DATABASE [CryptoDb]
                 FROM DISK = '/data/{Path.GetFileName(backupFile)}'
@@ -108,7 +106,6 @@ namespace CryptoDbDockerService
             }
         }
         
-
         private async Task ApplyMigrationsAsync()
         {
             try
@@ -120,7 +117,7 @@ namespace CryptoDbDockerService
                     _logger.LogInformation("Applying database migrations...");
                     await _centralizedLogger.SendLog(LogLevel.Information, "Applying database migrations...");
 
-                    await dbContext.Database.MigrateAsync(); // Uruchom migracje
+                    await dbContext.Database.MigrateAsync();
 
                     _logger.LogInformation("Database migrations applied successfully.");
                     await _centralizedLogger.SendLog(LogLevel.Information, "Database migrations applied successfully.");
@@ -131,11 +128,9 @@ namespace CryptoDbDockerService
                 var message = $"Migration error: {ex.Message}";
                 _logger.LogError(message);
                 await _centralizedLogger.SendLog(LogLevel.Error, message);
-                throw; // Nie pozwól kontynuować, jeśli migracje się nie powiodły
+                throw;
             }
         }
-
-
 
         private async Task CheckCryptoTableAsync()
         {
