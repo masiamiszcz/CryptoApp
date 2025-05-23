@@ -96,6 +96,9 @@ namespace CoinGeckoDockerService
                     };
 
                     dbContext.Cryptos.Add(cryptoEntity);
+                    var message = $"Odczyt z CoinGecko wykonany, następny odczyt za 5 minut.";
+                    _logger.LogInformation(message);
+                    await _centralizedLogger.SendLog(LogLevel.Information, message);
                     await dbContext.SaveChangesAsync();
                 }
             }

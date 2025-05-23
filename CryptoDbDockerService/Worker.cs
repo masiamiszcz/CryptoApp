@@ -68,11 +68,13 @@ namespace CryptoDbDockerService
                 if (backupFile == null)
                 {
                     _logger.LogInformation("No backup files found. Skipping restore. Applying migraion ...");
+                    await _centralizedLogger.SendLog(LogLevel.Information, $"No backup files found. Skipping restore.");
                     await ApplyMigrationsAsync();
                     return;
                 } 
 
                 _logger.LogInformation("Restoring database from: {fileName}", backupFile);
+                await _centralizedLogger.SendLog(LogLevel.Information, $"Restoring database from: {backupFile}");
 
                 using (var scope = _serviceProvider.CreateScope())
                 {
@@ -174,6 +176,7 @@ namespace CryptoDbDockerService
 
                 var backupFileName = Path.Combine(backupDirectory, $"Backup_{DateTime.Now:yyyyMMddHHmmss}.bak");
                 _logger.LogInformation("Starting database backup to file: {fileName}", backupFileName);
+                await _centralizedLogger.SendLog(LogLevel.Information, $"Starting database backup to file:{backupFileName}");
 
                 using (var scope = _serviceProvider.CreateScope())
                 {
